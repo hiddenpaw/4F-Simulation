@@ -14,9 +14,9 @@ from PIL import Image
 
 
 def prop(image,distance):
+    
     pitch=7.56e-6
     wavelength=633e-9
-
 
 
     k=2*np.pi/wavelength
@@ -26,16 +26,21 @@ def prop(image,distance):
     length=pitch*size[0]
     width=pitch*size[1]
 
-    prop_mask=np.zeros((size[0],size[1]))
+    prop_mask=np.zeros((size[0],size[1]))*1j
     kx_max=2*np.pi/length*size[0]
     ky_max=2*np.pi/width*size[1]
     kx_array=np.linspace(0,kx_max,size[0]).reshape(size[0],1)
     ky_array=np.linspace(0,ky_max,size[1]).reshape(1,size[1])
-    prop_mask=np.exp(-1j*(kx_array**2+ky_array**2)*distance/2/k)
-    fft=np.fft.fft2(image)
+    prop_mask0=np.exp(-1j*np.sqrt(k**2-kx_array**2-ky_array**2)*distance)
+
+    prop_mask[int(size[0]/2):,int(size[1]/2):]=prop_mask0[:int(size[0]/2),:int(size[1]/2)]
+    prop_mask[:int(size[0]/2),:int(size[1]/2)]=np.flip(np.flip(prop_mask0[:int(size[0]/2),:int(size[1]/2)],axis=0),axis=1)
+    prop_mask[:int(size[0]/2),int(size[1]/2):]=np.flip(prop_mask0[:int(size[0]/2),:int(size[1]/2)],axis=0)
+    prop_mask[int(size[0]/2):,:int(size[1]/2)]=np.flip(prop_mask0[:int(size[0]/2),:int(size[1]/2)],axis=1)
+    fft=np.fft.fftshift(np.fft.fft2(image))
     leak_mask=1
     #leak_mask=(1-2*kx_array*distance/k/width)*(1-2*ky_array*distance/k/length)
-    output=np.fft.ifft2(prop_mask*fft*leak_mask)
+    output=np.fft.ifft2(np.fft.ifftshift((prop_mask*fft*leak_mask)))
     
     return output
 
