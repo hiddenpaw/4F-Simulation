@@ -15,8 +15,8 @@ from PIL import Image
 
 def prop(image,distance):
     
-    pitch=7.56e-6
-    wavelength=633e-9
+    pitch=630e-9/2
+    wavelength=630e-9
 
 
     k=2*np.pi/wavelength
